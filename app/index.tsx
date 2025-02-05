@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Text, View, TextInput, FlatList, TouchableOpacity, Keyboard } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Toast from "react-native-toast-message";
@@ -6,6 +6,8 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, { Easing, withTiming, useSharedValue } from "react-native-reanimated"; // Import withTiming from reanimated
 import { PanGestureHandler } from "react-native-gesture-handler";
+
+import { BlurView } from "expo-blur";
 
 export default function Index() {
   const [todos, setTodos] = useState<{ key: string; text: string; description: string; priority: string; dueDate: string }[]>([]);
@@ -120,7 +122,7 @@ export default function Index() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className="flex-1 bg-gray-100 p-6">
+      <View className={`flex-1 bg-fuchsia-100 p-6 ${showForm ? "backdrop-blur-md" : ""}`}>
         {/* Empty State Message */}
         {todos.length === 0 && !showForm && (
           <View className="flex-1 items-center justify-center">
@@ -158,66 +160,69 @@ export default function Index() {
 
         {/* Animated Swipeable Panel */}
         {showForm && (
-          <Animated.View
-            style={{
-              transform: [{ translateY }],
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              backgroundColor: "white",
-              padding: 16,
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 0.1,
-              shadowRadius: 4
-            }}
-          >
-            <Text className="text-xl font-semibold text-gray-800 mb-2">{editingKey ? "Edit Todo" : "Add Todo"}</Text>
+          <>
+            <BlurView intensity={100} style={{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }} />
+            <Animated.View
+              style={{
+                transform: [{ translateY }],
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                backgroundColor: "white",
+                padding: 16,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: -4 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4
+              }}
+            >
+              <Text className="text-xl font-semibold text-gray-800 mb-2">{editingKey ? "Edit Todo" : "Add Todo"}</Text>
 
-            <TextInput className="border border-gray-300 p-3 rounded-lg mb-2 focus:border-blue-500" placeholder="Task title..." value={text} onChangeText={setText} />
+              <TextInput className="border border-gray-300 p-3 rounded-lg mb-2 focus:border-blue-500" placeholder="Task title..." value={text} onChangeText={setText} />
 
-            <TextInput className="border border-gray-300 p-3 rounded-lg mb-2 focus:border-blue-500 min-h-[80px] text-gray-800" placeholder="Description..." value={description} onChangeText={setDescription} multiline={true} />
+              <TextInput className="border border-gray-300 p-3 rounded-lg mb-2 focus:border-blue-500 min-h-[80px] text-gray-800" placeholder="Description..." value={description} onChangeText={setDescription} multiline={true} />
 
-            <View className="relative mb-2">
-              <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-between items-center" onPress={() => setShowPriorityMenu(!showPriorityMenu)}>
-                <Text className="text-gray-800">{priority} Priority</Text>
-                <Text className="text-gray-500">▼</Text>
-              </TouchableOpacity>
+              <View className="relative mb-2">
+                <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-between items-center" onPress={() => setShowPriorityMenu(!showPriorityMenu)}>
+                  <Text className="text-gray-800">{priority} Priority</Text>
+                  <Text className="text-gray-500">▼</Text>
+                </TouchableOpacity>
 
-              {showPriorityMenu && (
-                <View className="absolute top-12 left-0 bg-white shadow-md rounded-lg w-full z-10">
-                  {["Low", "Medium", "High"].map(level => (
-                    <TouchableOpacity
-                      key={level}
-                      className={`p-3 border-b ${priority === level ? "bg-blue-500 text-white" : "bg-white text-gray-800"}`}
-                      onPress={() => {
-                        setPriority(level);
-                        setShowPriorityMenu(false);
-                      }}
-                    >
-                      <Text className={priority === level ? "text-white font-bold" : "text-gray-800"}>{level}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
+                {showPriorityMenu && (
+                  <View className="absolute top-12 left-0 bg-white shadow-md rounded-lg w-full z-10">
+                    {["Low", "Medium", "High"].map(level => (
+                      <TouchableOpacity
+                        key={level}
+                        className={`p-3 border-b ${priority === level ? "bg-blue-500 text-white" : "bg-white text-gray-800"}`}
+                        onPress={() => {
+                          setPriority(level);
+                          setShowPriorityMenu(false);
+                        }}
+                      >
+                        <Text className={priority === level ? "text-white font-bold" : "text-gray-800"}>{level}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
+              </View>
 
-            <TextInput className="border border-gray-300 p-3 rounded-lg mb-4 focus:border-blue-500" placeholder="Due Date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} />
+              <TextInput className="border border-gray-300 p-3 rounded-lg mb-4 focus:border-blue-500" placeholder="Due Date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} />
 
-            {/* Add or Cancel Buttons */}
-            <View className="flex-row justify-between">
-              <TouchableOpacity className="bg-blue-500 p-3 rounded-lg items-center flex-1" onPress={addTodo}>
-                <Text className="text-white font-semibold">{editingKey ? "Update Todo" : "Add Todo"}</Text>
-              </TouchableOpacity>
-              {/* Cancel Button */}
-              <TouchableOpacity className="bg-gray-300 p-3 rounded-lg items-center flex-2 ml-2" onPress={cancel}>
-                <Text className="text-black font-semibold">Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </Animated.View>
+              {/* Add or Cancel Buttons */}
+              <View className="flex-row justify-between">
+                <TouchableOpacity className="bg-blue-500 p-3 rounded-lg items-center flex-1" onPress={addTodo}>
+                  <Text className="text-white font-semibold">{editingKey ? "Update Todo" : "Add Todo"}</Text>
+                </TouchableOpacity>
+                {/* Cancel Button */}
+                <TouchableOpacity className="bg-gray-300 p-3 rounded-lg items-center flex-2 ml-2" onPress={cancel}>
+                  <Text className="text-black font-semibold">Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </>
         )}
 
         {/* Toast Component */}
