@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Text, View, TextInput, FlatList, TouchableOpacity, Keyboard } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Toast from "react-native-toast-message";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { BlurView } from "expo-blur"; // Import BlurView from expo-blur
-import Animated, { withTiming, useSharedValue, useAnimatedStyle } from "react-native-reanimated"; // Use Reanimated's Animated
+import { BlurView } from "expo-blur";
+import Animated, { withTiming, useSharedValue, useAnimatedStyle } from "react-native-reanimated";
+import ToastMessage, { showToast } from "@/components/ToastMessage";
+import FloatingActionButton from "@/components/FloatingActionButton";
+import EmptyState from "@/components/EmptyState";
+import TodoItem from "@/components/TodoItem";
+
+import { loadTodos, saveTodos } from "@/utils/storage";
 
 export default function Index() {
   const [todos, setTodos] = useState<{ key: string; text: string; description: string; priority: string; dueDate: string }[]>([]);
@@ -15,79 +19,31 @@ export default function Index() {
   const [dueDate, setDueDate] = useState("");
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
-
-  // Error state
-  const [titleError, setTitleError] = useState<string | null>(null); // Track error message for title input
-
-  // For Swipeable panel
+  const [titleError, setTitleError] = useState<string | null>(null);
   const translateY = useSharedValue(500); // Start off-screen
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    loadTodos();
+    loadTodos(setTodos);
   }, []);
 
   useEffect(() => {
-    saveTodos();
+    saveTodos(todos);
   }, [todos]);
 
-  const saveTodos = async () => {
-    try {
-      await AsyncStorage.setItem("todos", JSON.stringify(todos));
-    } catch (error) {
-      console.error("Error saving todos:", error);
-    }
-  };
-
-  const loadTodos = async () => {
-    try {
-      const storedTodos = await AsyncStorage.getItem("todos");
-      if (storedTodos) {
-        setTodos(JSON.parse(storedTodos));
-      }
-    } catch (error) {
-      console.error("Error loading todos:", error);
-    }
-  };
-
-  const showToast = (type: "success" | "info" | "error", message: string) => {
-    Toast.show({
-      type: type,
-      text1: message,
-      position: "bottom",
-      visibilityTime: 1000,
-      autoHide: true
-    });
-  };
-
   const addTodo = () => {
-    // Validate title (text)
     if (text.trim() === "") {
       setTitleError("Title is required.");
-      return; // Prevent adding/updating if the title is empty
+      return;
     }
 
-    // Clear error if title is valid
     setTitleError(null);
 
-    if (editingKey) {
-      setTodos(todos.map(todo => (todo.key === editingKey ? { ...todo, text, description, priority, dueDate } : todo)));
-      showToast("info", "Todo updated successfully!");
-      setEditingKey(null);
-    } else {
-      setTodos([
-        ...todos,
-        {
-          key: Date.now().toString(),
-          text,
-          description,
-          priority,
-          dueDate
-        }
-      ]);
-      showToast("success", "Todo added successfully!");
-    }
+    const newTodo = { key: editingKey || Date.now().toString(), text, description, priority, dueDate };
+    setTodos(editingKey ? todos.map(todo => (todo.key === editingKey ? newTodo : todo)) : [...todos, newTodo]);
 
+    showToast(editingKey ? "info" : "success", editingKey ? "Todo updated successfully!" : "Todo added successfully!");
+    setEditingKey(null);
     setText("");
     setDescription("");
     setPriority("Medium");
@@ -101,6 +57,15 @@ export default function Index() {
     showToast("error", "Todo deleted!");
   };
 
+  const editTodo = (todo: { key: string; text: string; description: string; priority: string; dueDate: string }) => {
+    setText(todo.text);
+    setDescription(todo.description);
+    setPriority(todo.priority);
+    setDueDate(todo.dueDate);
+    setEditingKey(todo.key);
+    if (!showForm) openPanel();
+  };
+
   const openPanel = () => {
     setShowForm(true);
     translateY.value = withTiming(0, { duration: 300 });
@@ -109,15 +74,6 @@ export default function Index() {
   const closePanel = () => {
     setShowForm(false);
     translateY.value = withTiming(500, { duration: 300 });
-  };
-
-  const editTodo = (todo: { key: string; text: string; description: string; priority: string; dueDate: string }) => {
-    setText(todo.text);
-    setDescription(todo.description);
-    setPriority(todo.priority);
-    setDueDate(todo.dueDate);
-    setEditingKey(todo.key);
-    if (!showForm) openPanel(); // Open form when editing
   };
 
   const cancel = () => {
@@ -140,39 +96,12 @@ export default function Index() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="flex-1 bg-fuchsia-100 p-6">
         {/* Empty State Message */}
-        {todos.length === 0 && !showForm && (
-          <View className="flex-1 items-center justify-center">
-            <Text className="text-gray-500 text-lg">No todos yet. Click the + button to add one!</Text>
-          </View>
-        )}
+        {todos.length === 0 && !showForm && <EmptyState />}
 
         {/* Todo List */}
-        <FlatList
-          data={todos}
-          renderItem={({ item }) => (
-            <View className="bg-white p-4 rounded-lg shadow-md mt-2">
-              <Text className="text-gray-800 font-semibold text-lg">{item.text}</Text>
-              <Text className="text-gray-600">{item.description}</Text>
-              <Text className={`text-sm font-semibold ${item.priority === "High" ? "text-rose-500" : item.priority === "Medium" ? "text-yellow-500" : "text-green-500"}`}>Priority: {item.priority}</Text>
-              <Text className="text-gray-500 text-sm">Due: {item.dueDate || "No deadline"}</Text>
-              <View className="flex-row justify-end mt-2">
-                {/* Edit Button with Icon */}
-                <TouchableOpacity onPress={() => editTodo(item)}>
-                  <Icon name="edit" size={20} color="#00A6F4" />
-                </TouchableOpacity>
-                {/* Delete Button with Icon */}
-                <TouchableOpacity onPress={() => deleteTodo(item.key)} className="ml-4">
-                  <Icon name="trash" size={20} color="#FF2056" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
-        />
+        <FlatList data={todos} renderItem={({ item }) => <TodoItem todo={item} onEdit={editTodo} onDelete={deleteTodo} />} />
 
-        {/* Floating Action Button (FAB) */}
-        <TouchableOpacity className="absolute bottom-6 right-6 bg-fuchsia-600 w-16 h-16 rounded-full items-center justify-center shadow-lg" onPress={openPanel}>
-          <Text className="text-white text-3xl">+</Text>
-        </TouchableOpacity>
+        <FloatingActionButton onPress={openPanel} />
 
         {/* Animated Swipeable Panel */}
         {showForm && (
@@ -248,7 +177,7 @@ export default function Index() {
         )}
 
         {/* Toast Component */}
-        <Toast />
+        <ToastMessage />
       </View>
     </GestureHandlerRootView>
   );
