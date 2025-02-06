@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, FlatList, Keyboard } from "react-native";
+import { View, FlatList, Keyboard, Text } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BlurView } from "expo-blur";
 import Animated, { withTiming, useSharedValue, useAnimatedStyle } from "react-native-reanimated";
@@ -12,7 +12,7 @@ import TodoItem from "@/components/TodoItem";
 import { loadTodos, saveTodos } from "@/utils/storage";
 import TodoForm from "@/components/TodoForm";
 
-export default function Index() {
+export default function Tab() {
   const [todos, setTodos] = useState<{ key: string; text: string; description: string; priority: string; dueDate: string; completed: boolean }[]>([]);
   const [text, setText] = useState("");
   const [description, setDescription] = useState("");
@@ -87,7 +87,9 @@ export default function Index() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View className="flex-1 bg-fuchsia-100 p-6">
+      <View className="flex-1 bg-fuchsia-100 p-4">
+        <Text className="text-xl font-bold text-fuchsia-600 mb-4">Todo List</Text>
+
         {/* Empty State Message */}
         {todos.length === 0 && !showForm && <EmptyState />}
 
@@ -111,6 +113,7 @@ export default function Index() {
                   right: 0,
                   backgroundColor: "white",
                   padding: 16,
+                  paddingBottom: 100,
                   borderTopLeftRadius: 16,
                   borderTopRightRadius: 16,
                   shadowColor: "#000",

@@ -107,7 +107,7 @@ const TodoItem: React.FC<TodoItemProps> = ({ todo, onEdit, onDelete, onComplete 
 
       {/* Delete Confirmation */}
       {showConfirm && (
-        <View className="bg-white p-4 flex flex-col rounded-lg shadow-md mt-2">
+        <View className="bg-white p-3 flex flex-col rounded-lg shadow-md mt-2">
           <Text className="text-gray-800">Are you sure you want to delete this todo?</Text>
           <View className="flex-row justify-end mt-2">
             <TouchableOpacity onPress={() => setShowConfirm(false)}>

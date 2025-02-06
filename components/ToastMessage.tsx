@@ -9,7 +9,7 @@ export const showToast = (type: "success" | "info" | "error", message: string) =
   Toast.show({
     type,
     text1: message,
-    position: "bottom",
+    position: "top",
     visibilityTime: 1200,
     autoHide: true
   });

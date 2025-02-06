@@ -8,7 +8,7 @@ interface FABProps {
 
 const FloatingActionButton: React.FC<FABProps> = ({ onPress }) => {
   return (
-    <TouchableOpacity className="absolute bottom-6 right-6 bg-fuchsia-600 w-16 h-16 rounded-full items-center justify-center shadow-lg" onPress={onPress}>
+    <TouchableOpacity className="absolute bottom-28 right-6 bg-fuchsia-600 w-16 h-16 rounded-full items-center justify-center shadow-lg" onPress={onPress}>
       <Text className="text-white text-3xl">
         <Plus size={30} color="white" />
       </Text>

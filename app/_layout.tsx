@@ -1,33 +1,50 @@
+import { DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import { Text, View, Image } from "react-native";
-import { FontAwesome } from "@expo/vector-icons"; // You can use any icon library
+import * as SplashScreen from "expo-splash-screen";
+import React, { useEffect } from "react";
+import "react-native-reanimated";
 
-import "../global.css"; // Ensure NativeWind is working
+import "../global.css";
+
+// Prevent the splash screen from auto-hiding before asset loading is complete.
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [loaded] = useFonts({
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf")
+  });
+
+  useEffect(() => {
+    if (loaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [loaded]);
+
+  if (!loaded) {
+    return null;
+  }
+
   return (
-    <Stack>
-      {/* Custom Header */}
-      <Stack.Screen
-        name="index"
-        options={{
-          statusBarBackgroundColor: "#f0abfc",
-          header: () => (
-            <View className="flex-row gap-4 items-center p-4 shadow-lg bg-fuchsia-300">
-              <Image source={require("@/assets/images/app-icon.png")} style={{ width: 40, height: 40 }} />
-              <Text className="text-xl font-semibold"> M&H Todo App</Text>
-              <View className="flex-row items-center">
-                {/* <TouchableOpacity className="mr-4">
-                  <FontAwesome name="bell" size={24} color="white" />
-                </TouchableOpacity>
-                <TouchableOpacity>
-                  <FontAwesome name="user" size={24} color="white" />
-                </TouchableOpacity> */}
-              </View>
-            </View>
-          )
+    <ThemeProvider value={DefaultTheme}>
+      <Stack
+        screenOptions={{
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: "#d946ef"
+          },
+          headerTintColor: "#000"
         }}
-      />
-    </Stack>
+      >
+        <Stack.Screen
+          name="(tabs)"
+          options={{
+            headerShown: false
+          }}
+        />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+    </ThemeProvider>
   );
 }
