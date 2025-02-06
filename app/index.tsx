@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Text, View, TextInput, FlatList, TouchableOpacity, Keyboard } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
+import React, { useState, useEffect } from "react";
+import { View, FlatList, Keyboard } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BlurView } from "expo-blur";
 import Animated, { withTiming, useSharedValue, useAnimatedStyle } from "react-native-reanimated";
@@ -10,6 +9,7 @@ import EmptyState from "@/components/EmptyState";
 import TodoItem from "@/components/TodoItem";
 
 import { loadTodos, saveTodos } from "@/utils/storage";
+import TodoForm from "@/components/TodoForm";
 
 export default function Index() {
   const [todos, setTodos] = useState<{ key: string; text: string; description: string; priority: string; dueDate: string }[]>([]);
@@ -18,8 +18,6 @@ export default function Index() {
   const [priority, setPriority] = useState("Medium");
   const [dueDate, setDueDate] = useState("");
   const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [showPriorityMenu, setShowPriorityMenu] = useState(false);
-  const [titleError, setTitleError] = useState<string | null>(null);
   const translateY = useSharedValue(500); // Start off-screen
   const [showForm, setShowForm] = useState(false);
 
@@ -31,14 +29,7 @@ export default function Index() {
     saveTodos(todos);
   }, [todos]);
 
-  const addTodo = () => {
-    if (text.trim() === "") {
-      setTitleError("Title is required.");
-      return;
-    }
-
-    setTitleError(null);
-
+  const addTodo = (text: string, description: string, priority: string, dueDate: string) => {
     const newTodo = { key: editingKey || Date.now().toString(), text, description, priority, dueDate };
     setTodos(editingKey ? todos.map(todo => (todo.key === editingKey ? newTodo : todo)) : [...todos, newTodo]);
 
@@ -74,15 +65,6 @@ export default function Index() {
   const closePanel = () => {
     setShowForm(false);
     translateY.value = withTiming(500, { duration: 300 });
-  };
-
-  const cancel = () => {
-    setText("");
-    setDescription("");
-    setPriority("Medium");
-    setDueDate("");
-    setEditingKey(null);
-    closePanel(); // Close form
   };
 
   // Animated style for the panel
@@ -127,51 +109,7 @@ export default function Index() {
                 }
               ]}
             >
-              <Text className="text-xl font-semibold text-gray-800 mb-2">{editingKey ? "Edit Todo" : "Add Todo"}</Text>
-
-              {/* Title Input */}
-              <TextInput className={`border p-3 rounded-lg mb-2 focus:border-fuchsia-500 ${titleError ? "border-rose-500" : "border-gray-300"}`} placeholder="Task title..." value={text} onChangeText={setText} />
-              {/* Display error message if title is empty */}
-              {titleError && <Text className="text-rose-500 text-sm">{titleError}</Text>}
-
-              <TextInput className="border border-gray-300 p-3 rounded-lg mb-2 focus:border-fuchsia-500 min-h-[80px] text-gray-800" placeholder="Description..." value={description} onChangeText={setDescription} multiline={true} />
-
-              <View className="relative mb-2">
-                <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-between items-center" onPress={() => setShowPriorityMenu(!showPriorityMenu)}>
-                  <Text className="text-gray-800">{priority} Priority</Text>
-                  <Text className="text-gray-500">▼</Text>
-                </TouchableOpacity>
-
-                {showPriorityMenu && (
-                  <View className="absolute top-12 left-0 bg-white shadow-md rounded-lg w-full z-10">
-                    {["Low", "Medium", "High"].map(level => (
-                      <TouchableOpacity
-                        key={level}
-                        className={`p-3 border-b ${priority === level ? "bg-fuchsia-600 text-white" : "bg-white text-gray-800"}`}
-                        onPress={() => {
-                          setPriority(level);
-                          setShowPriorityMenu(false);
-                        }}
-                      >
-                        <Text className={priority === level ? "text-white font-bold" : "text-gray-800"}>{level}</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-
-              <TextInput className="border border-gray-300 p-3 rounded-lg mb-4 focus:border-fuchsia-500" placeholder="Due Date (YYYY-MM-DD)" value={dueDate} onChangeText={setDueDate} />
-
-              {/* Add or Cancel Buttons */}
-              <View className="flex-row justify-between">
-                <TouchableOpacity className="bg-fuchsia-600 p-3 rounded-lg items-center flex-1" onPress={addTodo}>
-                  <Text className="text-white font-semibold">{editingKey ? "Update Todo" : "Add Todo"}</Text>
-                </TouchableOpacity>
-                {/* Cancel Button */}
-                <TouchableOpacity className="bg-gray-300 p-3 rounded-lg items-center flex-2 ml-2" onPress={cancel}>
-                  <Text className="text-black font-semibold">Cancel</Text>
-                </TouchableOpacity>
-              </View>
+              <TodoForm onSave={addTodo} closePanel={closePanel} setEditingKey={setEditingKey} initialValues={todos.find(todo => todo.key === editingKey)} editingKey={editingKey} />
             </Animated.View>
           </>
         )}
