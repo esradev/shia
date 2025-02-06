@@ -1,7 +1,7 @@
 import { Tabs, Stack } from "expo-router";
 
 import TabBar from "@/components/TabBar";
-import { ListChecks, Repeat2 } from "lucide-react-native";
+import { ListChecks, Repeat2, Timer } from "lucide-react-native";
 
 export default function TabLayout() {
   return (
@@ -19,6 +19,14 @@ export default function TabLayout() {
         options={{
           title: "Habits",
           tabBarIcon: ({ color, size }) => <Repeat2 size={26} color={color} />,
+          headerShown: false
+        }}
+      />
+      <Tabs.Screen
+        name="pomodoro"
+        options={{
+          title: "Pomodoro",
+          tabBarIcon: ({ color, size }) => <Timer size={26} color={color} />,
           headerShown: false
         }}
       />

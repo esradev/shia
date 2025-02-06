@@ -29,6 +29,7 @@ export default function RootLayout() {
     <ThemeProvider value={DefaultTheme}>
       <Stack
         screenOptions={{
+          statusBarBackgroundColor: "#c026d3",
           headerShown: true,
           headerTitleAlign: "center",
           headerStyle: {
