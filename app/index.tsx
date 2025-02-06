@@ -3,6 +3,7 @@ import { View, FlatList, Keyboard } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BlurView } from "expo-blur";
 import Animated, { withTiming, useSharedValue, useAnimatedStyle } from "react-native-reanimated";
+
 import ToastMessage, { showToast } from "@/components/ToastMessage";
 import FloatingActionButton from "@/components/FloatingActionButton";
 import EmptyState from "@/components/EmptyState";
@@ -12,7 +13,7 @@ import { loadTodos, saveTodos } from "@/utils/storage";
 import TodoForm from "@/components/TodoForm";
 
 export default function Index() {
-  const [todos, setTodos] = useState<{ key: string; text: string; description: string; priority: string; dueDate: string }[]>([]);
+  const [todos, setTodos] = useState<{ key: string; text: string; description: string; priority: string; dueDate: string; completed: boolean }[]>([]);
   const [text, setText] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("Medium");
@@ -29,8 +30,8 @@ export default function Index() {
     saveTodos(todos);
   }, [todos]);
 
-  const addTodo = (text: string, description: string, priority: string, dueDate: string) => {
-    const newTodo = { key: editingKey || Date.now().toString(), text, description, priority, dueDate };
+  const addTodo = (text: string, description: string, priority: string, dueDate: string, completed: boolean) => {
+    const newTodo = { key: editingKey || Date.now().toString(), text, description, priority, dueDate, completed };
     setTodos(editingKey ? todos.map(todo => (todo.key === editingKey ? newTodo : todo)) : [...todos, newTodo]);
 
     showToast(editingKey ? "info" : "success", editingKey ? "Todo updated successfully!" : "Todo added successfully!");
@@ -74,6 +75,16 @@ export default function Index() {
     };
   });
 
+  const completeTodo = (key: string) => {
+    setTodos(prevTodos => {
+      const updatedTodos = prevTodos.map(todo => (todo.key === key ? { ...todo, completed: !todo.completed } : todo));
+      const completedTodos = updatedTodos.filter(todo => todo.completed);
+      const incompleteTodos = updatedTodos.filter(todo => !todo.completed);
+      return [...incompleteTodos, ...completedTodos];
+    });
+    showToast("success", "Todo updated successfully!");
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View className="flex-1 bg-fuchsia-100 p-6">
@@ -81,7 +92,7 @@ export default function Index() {
         {todos.length === 0 && !showForm && <EmptyState />}
 
         {/* Todo List */}
-        <FlatList data={todos} renderItem={({ item }) => <TodoItem todo={item} onEdit={editTodo} onDelete={deleteTodo} />} />
+        <FlatList data={todos} renderItem={({ item }) => <TodoItem todo={item} onEdit={editTodo} onDelete={deleteTodo} onComplete={completeTodo} />} />
 
         <FloatingActionButton onPress={openPanel} />
 

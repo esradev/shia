@@ -3,10 +3,10 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import PrioritySelector from "./PrioritySelector";
 
 interface TodoFormProps {
-  onSave: (text: string, description: string, priority: string, dueDate: string) => void;
+  onSave: (text: string, description: string, priority: string, dueDate: string, completed: boolean) => void;
   closePanel: () => void;
   setEditingKey: (key: string | null) => void;
-  initialValues?: { text: string; description: string; priority: string; dueDate: string };
+  initialValues?: { text: string; description: string; priority: string; dueDate: string; completed: boolean };
   editingKey: string | null;
 }
 
@@ -15,6 +15,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onSave, closePanel, setEditingKey, 
   const [description, setDescription] = useState(initialValues?.description || "");
   const [priority, setPriority] = useState(initialValues?.priority || "Medium");
   const [dueDate, setDueDate] = useState(initialValues?.dueDate || "");
+  const [completed, setCompleted] = useState(initialValues?.completed || false);
   const [titleError, setTitleError] = useState<string | null>(null);
 
   const handleCancel = () => {
@@ -32,7 +33,7 @@ const TodoForm: React.FC<TodoFormProps> = ({ onSave, closePanel, setEditingKey, 
       return;
     }
     setTitleError(null);
-    onSave(text, description, priority, dueDate);
+    onSave(text, description, priority, dueDate, completed);
   };
 
   return (
