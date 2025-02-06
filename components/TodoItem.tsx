@@ -1,6 +1,5 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
 import { Trash2, FilePen } from "lucide-react-native";
 
 interface TodoItemProps {

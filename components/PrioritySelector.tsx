@@ -11,8 +11,8 @@ const PrioritySelector: React.FC<PrioritySelectorProps> = ({ priority, setPriori
   const [showMenu, setShowMenu] = useState(false);
   return (
     <View className="relative mb-2">
-      <TouchableOpacity className="bg-gray-200 p-3 rounded-lg flex-row justify-between items-center" onPress={() => setShowMenu(!showMenu)}>
-        <Text className="text-gray-800">{priority} Priority</Text>
+      <TouchableOpacity className="bg-white border border-gray-300 p-3 rounded-lg flex-row justify-between items-center" onPress={() => setShowMenu(!showMenu)}>
+        <Text className="text-gray-400">{priority} Priority</Text>
         <ChevronDown size={24} color="gray" />
       </TouchableOpacity>
       {showMenu && (

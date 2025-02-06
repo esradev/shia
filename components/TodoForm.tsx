@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Keyboard } from "react-native";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import PrioritySelector from "./PrioritySelector";
 
 interface TodoFormProps {
